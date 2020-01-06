@@ -1,78 +1,71 @@
 'use strict';
 
-function getDocument() {
-  return window.document;
-}
 
 function getStyleParent() {
-  let doc = getDocument();
+  let doc = window.document;
   return doc.head || doc.body || doc.lastElementChild;
+}
+
+
+function insertStyles(selector, css, parentNode) {
+  if (!parentNode) {
+    parentNode = getStyleParent();
+  }
+
+  let doc = parentNode.ownerDocument;
+  let elem = doc.createElement('style');
+
+  if (selector) {
+    elem.dataset.selector = selector;
+  }
+
+  parentNode.appendChild(elem);
+  elem.sheet.disabled = true;
+  elem.appendChild(doc.createTextNode(css));
+
+  if (selector) {
+    for (let rule of elem.sheet.cssRules) {
+      if (rule.selectorText) {
+        rule.selectorText = selector + ' ' + rule.selectorText;
+      }
+    }
+  }
+
+  elem.sheet.disabled = false;
 }
 
 
 class Sheet {
 
-  constructor(selector, css) {
-    this._selector = selector;
-    this._css = css;
-    this._applied = false;
+  constructor(text) {
+    this._text = text;
+    this._appliedSet = new Set();
   }
 
-  apply(parentNode) {
-    if (this._applied) {
-      return;
+  applyTo(selector, parentNode) {
+    if (!selector) {
+      selector = null;
     }
 
-    if (!parentNode) {
-      parentNode = getStyleParent();
+    if (!this._appliedSet.has(selector)) {
+      this._appliedSet.add(selector);
+      insertStyles(selector, this._text, parentNode);
     }
-
-    this._applied = true;
-    let doc = parentNode.ownerDocument;
-    let elem = doc.createElement('style');
-
-    if (this._selector) {
-      elem.dataset.selector = this._selector;
-    }
-
-    parentNode.appendChild(elem);
-    elem.sheet.disabled = true;
-    elem.appendChild(doc.createTextNode(this._css));
-
-    for (let rule of elem.sheet.cssRules) {
-      if (this._selector && rule.selectorText) {
-        rule.selectorText = this._selector + ' ' + rule.selectorText;
-      }
-    }
-
-    elem.sheet.disabled = false;
   }
 
 }
 
 
-class StyleWith {
-
-  constructor(selector) {
-    this._selector = selector;
-  }
-
-  css(literal, ...values) {
-    return new Sheet(this._selector, String.raw(literal, ...values));
-  }
-
-  with(css) {
-    if (typeof css !== 'string') {
-      throw new TypeError('Argument not a string');
-    }
-    return new Sheet(this._selector, css);
-  }
-
+function css(literal, ...values) {
+  return new Sheet(String.raw(literal, ...values));
 }
 
 
 function style(selector) {
-  return new StyleWith(selector);
+  return {
+    with(sheet, parentNode) { sheet.applyTo(selector, parentNode) }
+  };
 }
 
-module.exports = { style };
+
+module.exports = { style, css };
