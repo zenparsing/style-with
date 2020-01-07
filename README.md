@@ -2,6 +2,7 @@
 
 ```js
 import { style, css } from 'style-with';
+import { html } from 'straylight';
 
 const sheet = css`
   button {
@@ -11,6 +12,11 @@ const sheet = css`
 
 function renderForm() {
   style('app-form').with(sheet);
-  // Render some HTML
+  return html`
+    <form class='app-form'>
+      <input type='text' />
+      <input type='submit' value='Submit' />
+    </form>
+  `;
 }
 ```
