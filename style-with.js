@@ -42,7 +42,7 @@ class Sheet {
     this._appliedSet = new Set();
   }
 
-  applyTo(selector, parentNode) {
+  style(selector, parentNode) {
     if (!selector) {
       selector = null;
     }
@@ -63,7 +63,7 @@ function css(literal, ...values) {
 
 function style(selector) {
   return {
-    with(sheet, parentNode) { sheet.applyTo(selector, parentNode) }
+    with(sheet, parentNode) { sheet.style(selector, parentNode) }
   };
 }
 
