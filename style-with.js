@@ -39,13 +39,20 @@ class Sheet {
 
   constructor(text) {
     this._text = text;
-    this._appliedSet = new Set();
+    this._lastSelector = undefined;
+    this._appliedSet = undefined;
   }
 
   style(selector, parentNode) {
     if (!selector) {
       selector = null;
     }
+
+    if (selector === this._lastSelector) {
+      return;
+    }
+
+    this._lastSelector = selector;
 
     if (!this._appliedSet.has(selector)) {
       this._appliedSet.add(selector);
@@ -63,7 +70,7 @@ function css(literal, ...values) {
 
 function style(selector) {
   return {
-    with(sheet, parentNode) { sheet.style(selector, parentNode) }
+    with(sheet, parentNode) { sheet.style(selector, parentNode); }
   };
 }
 
